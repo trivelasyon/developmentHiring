@@ -19,5 +19,5 @@ services:
       - POSTGRES_DB=Hrms
     volumes:
           - ./postgres-data:/var/lib/postgresql/data
-          # copy the sql script to create tables
+          # sql script to create tables
           - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
