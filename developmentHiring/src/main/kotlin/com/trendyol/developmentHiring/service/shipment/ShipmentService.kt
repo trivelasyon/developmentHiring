@@ -1,11 +1,9 @@
 package com.trendyol.developmentHiring.service.shipment
 
 import com.trendyol.developmentHiring.converter.shipment.ShipmentDtoConverter
-import com.trendyol.developmentHiring.entity.shipment.Shipment
 import com.trendyol.developmentHiring.model.shipment.ShipmentModel
 import com.trendyol.developmentHiring.model.update.UpdateStatusModel
 import com.trendyol.developmentHiring.repository.shipment.ShipmentRepository
-import org.hibernate.annotations.Cache
 import org.springframework.cache.annotation.CacheConfig
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
