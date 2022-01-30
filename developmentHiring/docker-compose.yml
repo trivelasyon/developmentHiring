@@ -1,0 +1,23 @@
+version: '3.1'
+services:
+  app:
+    image: trendyol-case
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgresqldb
+  postgresqldb:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=159bjk753
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=Hrms
+    volumes:
+          - ./postgres-data:/var/lib/postgresql/data
+          # copy the sql script to create tables
+          - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
