@@ -15,40 +15,53 @@ import com.trendyol.developmentHiring.service.log.LogService
 import com.trendyol.developmentHiring.service.packageInBag.PackageInBagService
 import com.trendyol.developmentHiring.service.shipment.ShipmentService
 import com.trendyol.developmentHiring.validation.PackageBagValidation
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentMatchers
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.InjectMocks
+import org.junit.Before
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.runner.RunWith
+import org.mockito.*
 import org.mockito.Mockito.times
+import org.springframework.boot.test.context.SpringBootTest
+import org.mockito.Mockito
+import org.mockito.Mockito.mock
+import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnitRunner
 
 
-@ExtendWith(MockitoExtension::class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest
 class ApiServiceTest {
-    private lateinit var shipmentModel : ShipmentModel
-    private lateinit var bagModel : BagModel
-    private lateinit var requestModel : RequestModel
-    private lateinit var updatedModel : RequestModel
-    private lateinit var shipment : Shipment
+    private lateinit var shipmentModel: ShipmentModel
+    private lateinit var bagModel: BagModel
+    private lateinit var requestModel: RequestModel
+    private lateinit var updatedModel: RequestModel
+    private lateinit var shipment: Shipment
+
     @InjectMocks
-    lateinit var apiService: ApiService
-    @Mock
-    lateinit var logService: LogService
+    lateinit var apiService : ApiService
+
     @Mock
     lateinit var bagService: BagService
+
     @Mock
     lateinit var shipmentService: ShipmentService
-    @Mock
-    lateinit var packageInBagService: PackageInBagService
+
     @Mock
     lateinit var packageBagValidation: PackageBagValidation
 
+    @Mock
+    lateinit var logService: LogService
+
+    @Mock
+    lateinit var packageInBagService: PackageInBagService
+
+    @Before
+    fun setUp() {
+        apiService = ApiService(packageBagValidation, shipmentService,bagService, logService , packageInBagService )
+    }
     @BeforeEach
-fun initiliazeModels(){
+    fun initiliazeModels() {
         shipment = Shipment(
             deliveryPoint = 1,
             barcode = "P7988000121",
@@ -69,12 +82,15 @@ fun initiliazeModels(){
             status = Status.Created
         )
 
-        requestModel =  RequestModel(
+        requestModel = RequestModel(
             licensePlate = "34 NR 2530",
             route = listOf(
                 RouteModel(
                     1,
-                    deliveries = listOf(BarcodeModel("P7988000121", state = Status.Created),BarcodeModel("C725799", state = Status.Created))
+                    deliveries = listOf(
+                        BarcodeModel("P7988000121", state = Status.Created),
+                        BarcodeModel("C725799", state = Status.Created)
+                    )
                 )
             )
         )
@@ -89,7 +105,8 @@ fun initiliazeModels(){
         )
 
 
-}
+    }
+
     @Test
     fun verifyThrowErrorFromDecideShipmentType() {
         Mockito.`when`(shipmentService.getShipment(ArgumentMatchers.anyString())).thenReturn(null)
@@ -101,19 +118,19 @@ fun initiliazeModels(){
     }
 
     @Test
-    fun getShipmentTypeBag() {
+    fun getShipmentTypePackage() {
 
         Mockito.`when`(shipmentService.getShipment(ArgumentMatchers.anyString())).thenReturn(shipmentModel)
         Mockito.`when`(bagService.getBag(ArgumentMatchers.anyString())).thenReturn(null)
-        assertEquals(apiService.decideShipmentType(ArgumentMatchers.anyString()), ShipmentType.Shipment)
+        assertEquals(ShipmentType.Shipment,apiService.decideShipmentType(ArgumentMatchers.anyString()))
     }
 
     @Test
-    fun getShipmentTypePackage() {
+    fun getShipmentTypeBag() {
 
         Mockito.`when`(shipmentService.getShipment(ArgumentMatchers.anyString())).thenReturn(null)
         Mockito.`when`(bagService.getBag(ArgumentMatchers.anyString())).thenReturn(bagModel)
-        assertEquals(apiService.decideShipmentType(ArgumentMatchers.anyString()), ShipmentType.Bag)
+        assertEquals(ShipmentType.Bag,apiService.decideShipmentType(ArgumentMatchers.anyString()))
 
     }
 
@@ -128,26 +145,28 @@ fun initiliazeModels(){
     }
 
     @Test
-    fun shipmentStatusToLoadedAfterLoadToVehicle(){
+    fun shipmentStatusToLoadedAfterLoadToVehicle() {
         Mockito.`when`(shipmentService.getShipment(ArgumentMatchers.anyString())).thenReturn(shipmentModel)
         Mockito.`when`(bagService.getBag(ArgumentMatchers.anyString())).thenReturn(null)
         apiService.loadShipmentToVehicle(requestModel)
-        Mockito.verify(shipmentService, times(1)).updateShipmentStatus(UpdateStatusModel(barcode = "P7988000121",
-            status = Status.Loaded))
+        Mockito.verify(shipmentService, times(1)).updateShipmentStatus(
+            UpdateStatusModel(
+                barcode = "P7988000121",
+                status = Status.Loaded
+            )
+        )
     }
 
     @Test
-    fun bagStatusToLoadedAfterLoadToVehicle(){
+    fun bagStatusToLoadedAfterLoadToVehicle() {
         Mockito.`when`(shipmentService.getShipment(ArgumentMatchers.anyString())).thenReturn(null)
         Mockito.`when`(bagService.getBag(ArgumentMatchers.anyString())).thenReturn(bagModel)
         apiService.loadShipmentToVehicle(requestModel)
-        Mockito.verify(bagService, times(1)).updateBagStatus(UpdateStatusModel(barcode = "C725799",
-            status = Status.Loaded))
-    }
-
-    @Test
-    fun unloadShipmentFromVehicle() {
-
-
+        Mockito.verify(bagService, times(1)).updateBagStatus(
+            UpdateStatusModel(
+                barcode = "C725799",
+                status = Status.Loaded
+            )
+        )
     }
 }
